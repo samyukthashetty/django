@@ -5,7 +5,7 @@ from rest_framework import status
 
 class APIResponse:
     @staticmethod
-    def format_response(success, message=None, data=None, status_code=None):
+    def format_response(success, message=None, data=None, status_code=None,headers=None):
        
         response_data = {
             'success': success,

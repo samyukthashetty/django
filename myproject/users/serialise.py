@@ -52,7 +52,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     department_id = serializers.PrimaryKeyRelatedField(
-        queryset=Department.objects.all(), write_only=True, source='department'
+    queryset=Department.objects.all(), write_only=True, source='department'
     )
     department = DepartmentSerializer(read_only=True)
     full_name = serializers.CharField(validators=[StringOnlyValidator()])
