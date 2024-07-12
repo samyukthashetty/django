@@ -181,55 +181,77 @@
 from urllib import response
 from rest_framework import mixins, generics, status
 from rest_framework.exceptions import ValidationError
-from .models import user
-from .serialise import UserSerializer
-from .helpers import  APIResponse
+from .models import User
+from .serialise import UserSerializer,UserProfileSerializer,CustomTokenObtainPairSerializer
+
+
 from .pagination import CustomLimitOffsetPagination
+
 
 from rest_framework.response import Response
 from .validators import PaginationValidator
+from rest_framework import serializers
+from rest_framework_simplejwt.views import TokenObtainPairView
+#authentication imports
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+
+from django.db import IntegrityError
+
+
+
+
+
 
 
 
 class UserCreateListView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
-    queryset = user.objects.all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = CustomLimitOffsetPagination
-
+    #Authentication 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+  
+    
     def get(self, request, *args, **kwargs):
-        try:
-            offset = PaginationValidator.validate_offset(request.data.get('offset', 0))
-            limit = PaginationValidator.validate_limit(request.data.get('limit', CustomLimitOffsetPagination.default_limit))
+        offset = PaginationValidator.validate_offset(request.query_params.get('offset', 0))
+        limit = PaginationValidator.validate_limit(request.query_params.get('limit', CustomLimitOffsetPagination.default_limit))
 
-            queryset = self.get_queryset()
-            total_count = queryset.count()
+        queryset = self.get_queryset()
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request, view=self)
 
-            paginator = self.pagination_class()
-            paginated_queryset = paginator.paginate_queryset(queryset, request, view=self)
-
-            serializer = self.serializer_class(paginated_queryset, many=True)
-
-            return paginator.get_paginated_response(serializer.data)
-
-        except ValueError as e:
-            return Response({
-                'success': False,
-                'code': 400,
-                'error': str(e)
-            })
-            # return APIResponse.format_response(False, str(e),status_code=400)
+        serializer = self.serializer_class(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = UserSerializer(data=data)
         try:
-            response = super().create(request, *args, **kwargs)
-            headers = self.get_success_headers(response.data)
-            return APIResponse.format_response(True, 'User created successfully', response.data, status.HTTP_201_CREATED, headers)
-        except ValidationError as e:
-            return APIResponse.format_response(False, str(e.detail), status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-           
-            return APIResponse.format_response(False, 'Internal Server error', status.HTTP_500_INTERNAL_SERVER_ERROR)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except IntegrityError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+   
 
+        # except serializers.ValidationError as e:
+        #     # Handle validation errors raised by serializers
+        #     return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # except Exception as e:
+        #     # Handle other exceptions
+        #     return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except serializers.ValidationError as e:
+        #     raise e
+        
+        # except Exception as e:
+        #     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 # # #create course
 # class CourseListCreateView(mixins.CreateModelMixin,mixins.ListModelMixin,generics.GenericAPIView):

@@ -1,16 +1,14 @@
 from rest_framework import serializers
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from django.core.validators import validate_email
-from .models import user
+from .models import User
 import re
 class EmailValidator:
     def __call__(self, value):
         try:
             validate_email(value)
         except ValidationError:
-             raise serializers.ValidationError(
-                 'Invalid email format.'
-            )
+            raise serializers.ValidationError('Invalid email format.')
 
 class UniqueEmailValidator:
     def __init__(self, queryset=None):
@@ -18,13 +16,10 @@ class UniqueEmailValidator:
 
     def __call__(self, value):
         if self.queryset.filter(email=value).exists():
-             raise serializers.ValidationError(
-               'Email is already in use.'
-            )
+            raise serializers.ValidationError('Email is already in use.')
 
 class StringOnlyValidator:
     def __call__(self, value):
-       
         if not value.isalpha():
             raise serializers.ValidationError("This field must contain only alphabetic characters.")
 
@@ -33,10 +28,10 @@ class PhoneNumberValidator:
         phone_pattern = re.compile(r'^\+?1?\d{10}$')  
         if not phone_pattern.match(value):
             raise serializers.ValidationError('Invalid phone number format.')
-
 class PaginationValidator:
     @staticmethod
     def validate_offset(offset):
+        
         try:
             offset = int(offset)
             if offset < 0:
@@ -47,6 +42,7 @@ class PaginationValidator:
 
     @staticmethod
     def validate_limit(limit, default_limit=1, max_limit=10):
+       
         try:
             limit = int(limit)
             if limit <= 0:

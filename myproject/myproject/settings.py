@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from datetime import timedelta 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'rest_framework',
+    #TOKEN AUTHENTICATION WITHOUT JWT
+     'rest_framework_simplejwt',
+    
+    
     
     
 ]
@@ -49,8 +55,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+   
+    
+    
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -86,7 +96,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djangodb',
+        'NAME': 'abstractuser',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost',  
@@ -138,5 +148,87 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':  'users.pagination.CustomLimitOffsetPagination',  
-    'PAGE_SIZE': 1,  # Default page size
+    'PAGE_SIZE': 1,  
 }
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'users.custom_exception.custom_exception_handler'
+}
+
+
+
+# settings.py
+
+
+
+# ...
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'users.middleware': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#           'rest_framework_simplejwt.authentication.JWTAuthentication',
+          
+#     ),
+# }
+# AUTHENTICATION_BACKENDS = [
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
+
+#tOKEN AUTHENTICATION WITHOUT jwt
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+       
+        # other authentication classes as needed
+    ),
+    # other settings
+}
+
+
+# Set token efrom datetime import timedeltaxpiration time
+# JWT_AUTH = {
+#     'JWT_EXPIRATION_DELTA': timedelta(hours=1),  # Example: Token expires in 1 hour
+#     # Add other JWT settings if needed
+# }
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+   
+# }
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.TokenAuthentication',
+        
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.IsAuthenticated',
+        
+#     ),
+# }
